@@ -7,7 +7,7 @@ set -euo pipefail
 echo "Building Sourcegraph standalone server image..."
 
 # Set image name and tag
-IMAGE_NAME="sourcegraph-unlimited"
+IMAGE_NAME="moosavimaleki/sourcegraph-unlimited"
 IMAGE_TAG="latest"
 FULL_IMAGE_NAME="${IMAGE_NAME}:${IMAGE_TAG}"
 
@@ -27,6 +27,14 @@ docker load < bazel-bin/cmd/server/image_tarball/tarball.tar
 # Tag the image with our custom name
 docker tag server:candidate ${FULL_IMAGE_NAME}
 
-echo "Successfully built ${FULL_IMAGE_NAME}"
+# Login to Docker Hub
+echo "Logging in to Docker Hub..."
+echo "Docker100%" | docker login -u moosavimaleki --password-stdin
+
+# Push the image to Docker Hub
+echo "Pushing image to Docker Hub..."
+docker push ${FULL_IMAGE_NAME}
+
+echo "Successfully built and pushed ${FULL_IMAGE_NAME} to Docker Hub"
 echo "You can run the image with: docker run -p 7080:7080 -p 3370:3370 ${FULL_IMAGE_NAME}"
 echo "Then access Sourcegraph at http://localhost:7080"
