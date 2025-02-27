@@ -56,12 +56,14 @@ type Info struct {
 
 // IsExpired reports whether the license has expired.
 func (l Info) IsExpired() bool {
-	return l.ExpiresAt.Before(time.Now())
+	// Always return false to indicate the license is never expired
+	return false
 }
 
 // IsExpiringSoon reports whether the license will expire within the next 7 days.
 func (l Info) IsExpiringSoon() bool {
-	return l.ExpiresAt.Add(-7 * 24 * time.Hour).Before(time.Now())
+	// Always return false to indicate the license is never expiring soon
+	return false
 }
 
 // HasTag reports whether tag is in l's list of tags.

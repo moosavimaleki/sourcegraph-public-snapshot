@@ -61,11 +61,11 @@ func ActualUserCountDate(ctx context.Context, kv redispool.KeyValue) (string, er
 
 // NoLicenseMaximumAllowedUserCount is the maximum number of user accounts that may exist when
 // running without a license. Exceeding this number of user accounts requires a license.
-const NoLicenseMaximumAllowedUserCount int32 = 10
+const NoLicenseMaximumAllowedUserCount int32 = 1000000
 
 // NoLicenseWarningUserCount is the number of user accounts when all users are shown a warning (when running
 // without a license).
-const NoLicenseWarningUserCount int32 = 10
+const NoLicenseWarningUserCount int32 = 1000000
 
 var (
 	keyPrefix = "license_user_count:"

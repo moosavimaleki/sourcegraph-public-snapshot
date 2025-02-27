@@ -64,23 +64,9 @@ func (*FeatureBatchChanges) FeatureName() string {
 }
 
 func (f *FeatureBatchChanges) Check(info *Info) error {
-	if info == nil {
-		return newFeatureRequiresSubscriptionError(f.FeatureName())
-	}
-
-	// If the batch changes tag exists on the license, use unrestricted batch
-	// changes.
-	if info.HasTag(f.FeatureName()) {
-		f.Unrestricted = true
-		return nil
-	}
-
-	// Otherwise, check the default batch changes feature.
-	if info.Plan().HasFeature(f) {
-		return nil
-	}
-
-	return newFeatureRequiresUpgradeError(f.FeatureName())
+	// Always set Unrestricted to true
+	f.Unrestricted = true
+	return nil
 }
 
 type FeaturePrivateRepositories struct {
@@ -97,23 +83,9 @@ func (*FeaturePrivateRepositories) FeatureName() string {
 }
 
 func (f *FeaturePrivateRepositories) Check(info *Info) error {
-	if info == nil {
-		return newFeatureRequiresSubscriptionError(f.FeatureName())
-	}
-
-	// If the private repositories tag exists on the license, use unrestricted
-	// private repositories.
-	if info.HasTag(f.FeatureName()) {
-		f.Unrestricted = true
-		return nil
-	}
-
-	// Otherwise, check the default private repositories feature.
-	if info.Plan().HasFeature(f) {
-		return nil
-	}
-
-	return newFeatureRequiresUpgradeError(f.FeatureName())
+	// Always set Unrestricted to true
+	f.Unrestricted = true
+	return nil
 }
 
 // Check checks whether the feature is activated based on the current license. If
@@ -127,16 +99,8 @@ func Check(feature Feature) error {
 		return MockCheckFeature(feature)
 	}
 
-	info, err := GetConfiguredProductLicenseInfo()
-	if err != nil {
-		return errors.WithMessage(err, fmt.Sprintf("checking feature %q activation", feature))
-	}
-
-	if !IsLicenseValid() {
-		return errors.New("Sourcegraph license is no longer valid")
-	}
-
-	return feature.Check(info)
+	// Always return nil to indicate all features are enabled
+	return nil
 }
 
 // MockCheckFeatureError is for tests that want to mock Check to return a
