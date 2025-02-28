@@ -150,6 +150,7 @@ compile_app(
     chdir = package_name(),
     env = {
         "BAZEL": "1",
+        "NODE_OPTIONS": "--max-old-space-size=16384",
     },
     out_dirs = ["build"],
     test_overrides = {
