@@ -1,3 +1,20 @@
+# Sourcegraph Unlimited Docker Image
+
+A Docker image with all Sourcegraph enterprise features unlocked and no license restrictions has been created and pushed to Docker Hub.
+
+- **Docker Hub Repository**: [moosavimaleki/sourcegraph-unlimited](https://hub.docker.com/r/moosavimaleki/sourcegraph-unlimited)
+- **Email used for Docker Hub**: contact@example.com (replace with your actual email)
+
+## Running the Unlimited Sourcegraph Server
+
+```bash
+docker run -p 7080:7080 -p 3370:3370 moosavimaleki/sourcegraph-unlimited:latest
+```
+
+Then access Sourcegraph at http://localhost:7080
+
+---
+
 > [!NOTE]
 > Sourcegraph transitioned to a private monorepo. This repository, `sourcegraph/sourcegraph-public-snapshot` is a publicly available copy of the `sourcegraph/sourcegraph` repository as it was just before the migration.
 

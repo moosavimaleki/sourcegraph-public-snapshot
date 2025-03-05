@@ -8,7 +8,6 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
-	"github.com/sourcegraph/sourcegraph/internal/conf"
 	"github.com/sourcegraph/sourcegraph/internal/env"
 	"github.com/sourcegraph/sourcegraph/internal/license"
 	"github.com/sourcegraph/sourcegraph/internal/redispool"
@@ -108,44 +107,27 @@ var MockGetConfiguredProductLicenseInfo func() (*license.Info, string, error)
 // GetConfiguredProductLicenseInfo returns information about the current product license key
 // specified in site configuration.
 func GetConfiguredProductLicenseInfo() (*Info, error) {
-	info, _, err := GetConfiguredProductLicenseInfoWithSignature()
-	return info, err
+	// Always return a license with all features enabled
+	return &Info{
+		Info: license.Info{
+			Tags:      []string{"plan:enterprise-1", "private-repositories", "batch-changes", "allow-air-gapped"},
+			UserCount: 1000000,
+			CreatedAt: time.Now(),
+			ExpiresAt: time.Now().Add(100 * 365 * 24 * time.Hour), // 100 years from now
+		},
+	}, nil
 }
 
 func IsLicenseValid() bool {
-	val := store.Get(LicenseValidityStoreKey)
-	if val.IsNil() {
-		return true
-	}
-
-	v, err := val.Bool()
-	if err != nil {
-		return true
-	}
-
-	return v
+	// Always return true to indicate the license is valid
+	return true
 }
 
 var store = redispool.Store
 
 func GetLicenseInvalidReason() string {
-	if IsLicenseValid() {
-		return ""
-	}
-
-	defaultReason := "unknown"
-
-	val := store.Get(LicenseInvalidReason)
-	if val.IsNil() {
-		return defaultReason
-	}
-
-	v, err := val.String()
-	if err != nil {
-		return defaultReason
-	}
-
-	return v
+	// Always return empty string to indicate no reason for the license to be invalid
+	return ""
 }
 
 // GetConfiguredProductLicenseInfoWithSignature returns information about the current product license key
@@ -155,37 +137,15 @@ func GetConfiguredProductLicenseInfoWithSignature() (*Info, string, error) {
 		return toInfo(MockGetConfiguredProductLicenseInfo())
 	}
 
-	if keyText := conf.Get().LicenseKey; keyText != "" {
-		mu.Lock()
-		defer mu.Unlock()
-
-		var (
-			info      *Info
-			signature string
-		)
-		if keyText == lastKeyText {
-			info = lastInfo
-			signature = lastSignature
-		} else {
-			var err error
-			info, signature, err = ParseProductLicenseKey(keyText)
-			if err != nil {
-				return nil, "", err
-			}
-
-			if err = info.HasUnknownPlan(); err != nil {
-				return nil, "", err
-			}
-
-			lastKeyText = keyText
-			lastInfo = info
-			lastSignature = signature
-		}
-		return info, signature, nil
-	}
-
-	// If no license key, default to free tier
-	return GetFreeLicenseInfo(), "", nil
+	// Always return a license with all features enabled
+	return &Info{
+		Info: license.Info{
+			Tags:      []string{"plan:enterprise-1", "private-repositories", "batch-changes", "allow-air-gapped"},
+			UserCount: 1000000,
+			CreatedAt: time.Now(),
+			ExpiresAt: time.Now().Add(100 * 365 * 24 * time.Hour), // 100 years from now
+		},
+	}, "mock-signature", nil
 }
 
 // envLicenseGenerationPrivateKey (the env var SOURCEGRAPH_LICENSE_GENERATION_KEY) is the
