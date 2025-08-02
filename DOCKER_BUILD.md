@@ -36,20 +36,18 @@
 
 ## روش‌های ساخت Docker Image
 
-### روش 1: استفاده از `sg` (ساده‌ترین روش)
+### روش 1: استفاده از `sg` (نیاز به build ابزار sg دارد)
 
+ابتدا باید ابزار sg را build کنید:
 ```bash
-# ساخت و لود کردن image در Docker
-sg images build --load server
+# Build کردن ابزار sg
+go build -o sg ./dev/sg
 
-# یا فقط ساخت image بدون لود کردن
-sg images build --no-load server
+# سپس استفاده از sg برای build
+./sg images build --load server
 ```
 
-**مزایا:**
-- ساده‌ترین روش
-- تمام تنظیمات از قبل انجام شده
-- مناسب برای توسعه محلی
+**توجه:** این روش ممکن است به دلیل dependencies زیاد Go، زمان‌بر باشد.
 
 ### روش 2: استفاده مستقیم از Bazel
 
@@ -198,6 +196,31 @@ bazel cquery '//cmd/server:image' --output build
 bazel query 'deps(//cmd/server:image)'
 ```
 
+## روش‌های جایگزین سریع
+
+### برای تست سریع تغییرات
+اگر می‌خواهید تغییرات خود را سریع تست کنید:
+
+```bash
+# استفاده از اسکریپت quick-build.sh
+./quick-build.sh
+```
+
+این روش از image رسمی Sourcegraph استفاده کرده و فقط فایل‌های تغییر یافته را کپی می‌کند.
+
+### استفاده از Docker Compose برای توسعه
+```bash
+# استفاده از docker-compose برای محیط توسعه
+docker-compose -f dev/redis-postgres.yml up -d
+sg start  # اگر sg را build کرده باشید
+```
+
+## زمان Build
+
+- **اولین build با Bazel**: 30-60 دقیقه (بسته به سرعت اینترنت و CPU)
+- **Build های بعدی**: 5-15 دقیقه (به دلیل cache)
+- **Quick build**: کمتر از 1 دقیقه
+
 ## خلاصه
 
 Image ای که با دستورات بالا می‌سازید، دقیقاً مشابه image رسمی `sourcegraph/server` است و شامل:
@@ -208,3 +231,60 @@ Image ای که با دستورات بالا می‌سازید، دقیقاً م
 - تمام ابزارهای جانبی
 
 این یک **all-in-one** image است که برای deployment های کوچک تا متوسط مناسب است.
+
+## نکته مهم
+Bazel build اولیه زمان‌بر است چون باید:
+1. تمام dependencies را دانلود کند
+2. Go stdlib را compile کند
+3. تمام Rust/JavaScript dependencies را build کند
+4. همه services را compile کند
+
+پس از اولین build، Bazel تمام این موارد را cache می‌کند و build های بعدی بسیار سریع‌تر خواهند بود.
+
+## خلاصه دستورات
+
+### Build کامل (توصیه شده برای production):
+```bash
+# Build image
+./bazelisk build //cmd/server:image_tarball
+
+# Load به Docker (بعد از اتمام build)
+./bazelisk run //cmd/server:image_tarball
+
+# اجرای container
+docker run -d \
+  --name sourcegraph \
+  -p 7080:7080 \
+  -p 3370:3370 \
+  -v sourcegraph-data:/var/opt/sourcegraph \
+  server:candidate
+```
+
+### Build سریع برای development:
+```bash
+# استفاده از official image + تغییرات محلی
+./quick-build.sh
+
+# اجرا
+docker run -d \
+  --name sourcegraph-dev \
+  -p 7080:7080 \
+  sourcegraph-dev:latest
+```
+
+### بررسی وضعیت build:
+```bash
+# مانیتور کردن پیشرفت
+./monitor-build.sh
+
+# یا
+./check-build-status.sh
+```
+
+## دسترسی به Sourcegraph
+
+بعد از اجرای container:
+- **Web UI**: http://localhost:7080
+- **Grafana**: http://localhost:3370
+
+اولین بار که وارد می‌شوید، باید یک حساب admin بسازید.
